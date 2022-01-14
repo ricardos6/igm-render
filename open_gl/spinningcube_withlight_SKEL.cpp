@@ -18,7 +18,7 @@
 
 // #include "textfile.h"
 // TODO: Ultimo. Intentar usar esto desde los ficheros en vez del codigo copiado
-// aqui. Placeholder code. 
+// aqui. Placeholder code.
 char *textFileRead(const char *fn) {
 
     FILE *fp;
@@ -81,8 +81,9 @@ GLuint vao            = 0; // Vertext Array Object to set input data
 GLint model_location, view_location, proj_location,
     normal_to_world_location; // Uniforms for transformation matrices
 GLint view_pos_location;      // Uniform for camera position
-GLint light_pos_location, light_amb_location, light_diff_location,
-    light_spec_location; // Uniform for light position
+GLint light_pos1_location, light_amb1_location, light_diff1_location,
+    light_spec1_location, light_pos2_location, light_amb2_location,
+    light_diff2_location, light_spec2_location; // Uniform for light position
 GLint material_amb_location, material_diff_location, material_spec_location,
     material_shin_location; // Uniform for material properties
 GLint cam_pos_location;     // Uniform for camera position
@@ -91,20 +92,21 @@ GLint cam_pos_location;     // Uniform for camera position
 const char *vertexFileName   = "spinningcube_withlight_vs_SKEL.glsl";
 const char *fragmentFileName = "spinningcube_withlight_fs_SKEL.glsl";
 
-// Camera
-glm::vec3 camera_pos(0.0f, 0.0f, 0.5f);
+// Cameras
+glm::vec3 camera_pos(5.0f, 5.0f, 5.0f);
 
 // Lighting
-glm::vec3 light_pos(1.2f, 1.0f, 2.0f);
+glm::vec3 light_pos1(-2.0f, 4.0f, -1.0f);
+glm::vec3 light_pos2(5.0f, 5.0f, 5.0f);
 glm::vec3 light_ambient(0.2f, 0.2f, 0.2f);
-glm::vec3 light_diffuse(0.5f, 0.5f, 0.5f);
+glm::vec3 light_diffuse(0.6f, 0.5f, 0.5f);
 glm::vec3 light_specular(1.0f, 1.0f, 1.0f);
 
 // Material
 glm::vec3 material_ambient(1.0f, 0.5f, 0.31f);
-glm::vec3 material_diffuse(1.0f, 0.5f, 0.31f);
-glm::vec3 material_specular(0.5f, 0.5f, 0.5f);
-const GLfloat material_shininess = 32.0f;
+glm::vec3 material_diffuse(1.0f, 0.5f, 0.9f);
+glm::vec3 material_specular(0.9f, 0.9f, 0.9f);
+const GLfloat material_shininess = 100.0f;
 
 int main() {
     // start GL context and O/S window using the GLFW helper library
@@ -263,7 +265,57 @@ int main() {
 
         -0.25f, 0.25f, -0.25f, 0.0f, 1.0f, 0.0f, // 0
         -0.25f, 0.25f, 0.25f, 0.0f, 1.0f, 0.0f,  // 7
-        0.25f, 0.25f, -0.25f, 0.0f, 1.0f, 0.0f   // 3
+        0.25f, 0.25f, -0.25f, 0.0f, 1.0f, 0.0f,  // 3
+
+        // SECOND CUBE
+
+        1.5f, 1.5f, 1.5f, 0.0f, 0.0f, -1.0f, // 1
+        1.5f, 2.5f, 1.5f, 0.0f, 0.0f, -1.0f, // 0
+        2.5f, 1.5f, 1.5f, 0.0f, 0.0f, -1.0f, // 2
+
+        2.5f, 2.5f, 1.5f, 0.0f, 0.0f, -1.0f, // 3
+        2.5f, 1.5f, 1.5f, 0.0f, 0.0f, -1.0f, // 2
+        1.5f, 2.5f, 1.5f, 0.0f, 0.0f, -1.0f, // 0
+
+        2.5f, 1.5f, 1.5f, 1.0f, 0.0f, 0.0f, // 2
+        2.5f, 2.5f, 1.5f, 1.0f, 0.0f, 0.0f, // 3
+        2.5f, 1.5f, 2.5f, 1.0f, 0.0f, 0.0f, // 5
+
+        2.5f, 2.5f, 2.5f, 1.0f, 0.0f, 0.0f, // 4
+        2.5f, 1.5f, 2.5f, 1.0f, 0.0f, 0.0f, // 5
+        2.5f, 2.5f, 1.5f, 1.0f, 0.0f, 0.0f, // 3
+
+        2.5f, 1.5f, 2.5f, 0.0f, 0.0f, 1.0f, // 5
+        2.5f, 2.5f, 2.5f, 0.0f, 0.0f, 1.0f, // 4
+        1.5f, 1.5f, 2.5f, 0.0f, 0.0f, 1.0f, // 6
+
+        1.5f, 2.5f, 2.5f, 0.0f, 0.0f, 1.0f, // 7
+        1.5f, 1.5f, 2.5f, 0.0f, 0.0f, 1.0f, // 6
+        2.5f, 2.5f, 2.5f, 0.0f, 0.0f, 1.0f, // 4
+
+        1.5f, 1.5f, 2.5f, -1.0f, 0.0f, 0.0f, // 6
+        1.5f, 2.5f, 2.5f, -1.0f, 0.0f, 0.0f, // 7
+        1.5f, 1.5f, 1.5f, -1.0f, 0.0f, 0.0f, // 1
+
+        1.5f, 2.5f, 1.5f, -1.0f, 0.0f, 0.0f, // 0
+        1.5f, 1.5f, 1.5f, -1.0f, 0.0f, 0.0f, // 1
+        1.5f, 2.5f, 2.5f, -1.0f, 0.0f, 0.0f, // 7
+
+        2.5f, 1.5f, 1.5f, 0.0f, -1.0f, 0.0f, // 2
+        2.5f, 1.5f, 2.5f, 0.0f, -1.0f, 0.0f, // 5
+        1.5f, 1.5f, 1.5f, 0.0f, -1.0f, 0.0f, // 1
+
+        1.5f, 1.5f, 2.5f, 0.0f, -1.0f, 0.0f, // 6
+        1.5f, 1.5f, 1.5f, 0.0f, -1.0f, 0.0f, // 1
+        2.5f, 1.5f, 2.5f, 0.0f, -1.0f, 0.0f, // 5
+
+        2.5f, 2.5f, 2.5f, 0.0f, 1.0f, 0.0f, // 4
+        2.5f, 2.5f, 1.5f, 0.0f, 1.0f, 0.0f, // 3
+        1.5f, 2.5f, 2.5f, 0.0f, 1.0f, 0.0f, // 7
+
+        1.5f, 2.5f, 1.5f, 0.0f, 1.0f, 0.0f, // 0
+        1.5f, 2.5f, 2.5f, 0.0f, 1.0f, 0.0f, // 7
+        2.5f, 2.5f, 1.5f, 0.0f, 1.0f, 0.0f, // 3
     };
 
     // Vertex Buffer Object (for vertex coordinates)
@@ -278,8 +330,6 @@ int main() {
     glVertexAttribPointer(
         0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-
-    // 1: vertex normals (x, y, z)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
         (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
@@ -306,11 +356,22 @@ int main() {
     // - Camera position
     view_pos_location = glGetUniformLocation(shader_program, "view_pos");
 
-    // - Light data
-    light_pos_location = glGetUniformLocation(shader_program, "light.position");
-    light_amb_location = glGetUniformLocation(shader_program, "light.ambient");
-    light_diff_location = glGetUniformLocation(shader_program, "light.diffuse");
-    light_spec_location
+    // - Light data 1
+    light_pos1_location
+        = glGetUniformLocation(shader_program, "light.position");
+    light_amb1_location = glGetUniformLocation(shader_program, "light.ambient");
+    light_diff1_location
+        = glGetUniformLocation(shader_program, "light.diffuse");
+    light_spec1_location
+        = glGetUniformLocation(shader_program, "light.specular");
+
+    // - Light data 2
+    light_pos2_location
+        = glGetUniformLocation(shader_program, "light.position");
+    light_amb2_location = glGetUniformLocation(shader_program, "light.ambient");
+    light_diff2_location
+        = glGetUniformLocation(shader_program, "light.diffuse");
+    light_spec2_location
         = glGetUniformLocation(shader_program, "light.specular");
 
     // - Material data
@@ -380,11 +441,17 @@ void render(double currentTime) {
     glUniformMatrix3fv(
         normal_to_world_location, 1, GL_FALSE, glm::value_ptr(normal_matrix));
 
-    // luz
-    glUniform3fv(light_pos_location, 1, glm::value_ptr(light_pos));
-    glUniform3fv(light_amb_location, 1, glm::value_ptr(light_ambient));
-    glUniform3fv(light_diff_location, 1, glm::value_ptr(light_diffuse));
-    glUniform3fv(light_spec_location, 1, glm::value_ptr(light_specular));
+    // luz1
+    glUniform3fv(light_pos1_location, 1, glm::value_ptr(light_pos1));
+    glUniform3fv(light_amb1_location, 1, glm::value_ptr(light_ambient));
+    glUniform3fv(light_diff1_location, 1, glm::value_ptr(light_diffuse));
+    glUniform3fv(light_spec1_location, 1, glm::value_ptr(light_specular));
+
+    // luz2
+    glUniform3fv(light_pos2_location, 1, glm::value_ptr(light_pos2));
+    glUniform3fv(light_amb2_location, 1, glm::value_ptr(light_ambient));
+    glUniform3fv(light_diff2_location, 1, glm::value_ptr(light_diffuse));
+    glUniform3fv(light_spec2_location, 1, glm::value_ptr(light_specular));
 
     // material
     glUniform1f(material_shin_location, material_shininess);
@@ -396,6 +463,7 @@ void render(double currentTime) {
     glUniform3fv(cam_pos_location, 1, glm::value_ptr(camera_pos));
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDrawArrays(GL_TRIANGLES, 36, 36);
 }
 
 void processInput(GLFWwindow *window) {
