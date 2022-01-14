@@ -1,4 +1,4 @@
-#version 130
+#version 330 core
 
 struct Material {
   vec3 ambient;
@@ -17,29 +17,28 @@ struct Light {
 out vec4 frag_col;
 
 in vec3 frag_3Dpos;
-in vec3 vs_normal;
-in vec2 vs_tex_coord;
+in vec3 normal;
+// in vec2 vs_tex_coord;
 
 uniform Material material;
 uniform Light light;
 uniform vec3 view_pos;
 
-// TODO: Hacer el fragment shader
 void main() {
   // Ambient
-  vec3 ambient = material.ambient * light.ambient;
+  vec3 ambient = light.ambient * material.ambient;
 
   vec3 light_dir = normalize(light.position - frag_3Dpos);
 
   // Diffuse
-  float diff = max(dot(light_dir, vs_normal), 0.0);
-  vec3 diffuse = diff * material.diffuse * light.diffuse;
+  float diff = max(dot(normal, light_dir), 0.0);
+  vec3 diffuse = light.diffuse * material.diffuse * diff;
   
   // Specular
   vec3 view_dir = normalize(view_pos - frag_3Dpos);
-  vec3 reflect_dir = reflect(-light_dir, vs_normal);
+  vec3 reflect_dir = reflect(-light_dir, normal);
   float spec = pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess);
-  vec3 specular = spec * material.specular * light.specular;
+  vec3 specular = light.specular * spec * material.specular;
 
   vec3 result = ambient + diffuse + specular;
   frag_col = vec4(result, 1.0);
