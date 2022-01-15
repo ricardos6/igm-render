@@ -148,6 +148,13 @@ def add_plane(position, normal):
                 reflection=.25)
 
 
+def add_triangle(position, color):
+    return dict(type='triangle',
+                color=np.array(color),
+                pos=np.array(position),
+                reflection=.3)
+
+
 # List of objects.
 color_plane0 = 1. * np.ones(3)
 color_plane1 = 0. * np.ones(3)
@@ -159,9 +166,9 @@ scene = [
 ]
 
 # Light position and color arrays.
-light_position_array = np.array([[5., 5., -10.], [5., 5., 0.],
-                                 [-20., 8., -25.]])
-light_colors_array = np.array([[3., 1., 1.], [1., 2., 3.], [1., 1., 1.]])
+light_position_array = np.array([[5., 5., -10.], [3., 3., 1.],
+                                 [-10., 4., -20.]])
+light_colors_array = np.array([[3., 1., 1.], [2., 2., 1.], [3., 3., 3.]])
 
 # Default light and material parameters.
 ambient = .05
