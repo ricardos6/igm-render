@@ -33,9 +33,10 @@ GLint view_pos_location;      // Uniform for camera position
 GLint light_pos1_location, light_amb1_location, light_diff1_location,
     light_spec1_location, light_pos2_location, light_amb2_location,
     light_diff2_location, light_spec2_location; // Uniform for light position
-GLint material_amb_location, material_diff_location, material_spec_location,
-    material_shin_location; // Uniform for material properties
+GLint material_shin_location, material_diff_location,
+    material_spec_location; // Uniform for material properties
 GLint cam_pos_location;     // Uniform for camera position
+GLuint texture_maps[2];     // The diffuse and specular maps
 
 // Shader names
 const char *vertexFileName   = "spinningcube_withlight_vs_SKEL.glsl";
@@ -48,14 +49,11 @@ glm::vec3 camera_pos(5.0f, 5.0f, 5.0f);
 glm::vec3 light_pos1(-2.0f, 4.0f, -1.0f);
 glm::vec3 light_pos2(5.0f, 5.0f, 5.0f);
 glm::vec3 light_ambient(0.2f, 0.2f, 0.2f);
-glm::vec3 light_diffuse(0.6f, 0.5f, 0.5f);
+glm::vec3 light_diffuse(0.5f, 0.5f, 0.5f);
 glm::vec3 light_specular(1.0f, 1.0f, 1.0f);
 
 // Material
-glm::vec3 material_ambient(1.0f, 0.5f, 0.31f);
-glm::vec3 material_diffuse(1.0f, 0.5f, 0.9f);
-glm::vec3 material_specular(0.9f, 0.9f, 0.9f);
-const GLfloat material_shininess = 100.0f;
+const GLfloat material_shininess = 64.0f;
 
 int main() {
     // start GL context and O/S window using the GLFW helper library
@@ -63,11 +61,6 @@ int main() {
         fprintf(stderr, "ERROR: could not start GLFW3\n");
         return 1;
     }
-
-    //  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    //  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    //  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    //  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow *window
         = glfwCreateWindow(gl_width, gl_height, "My spinning cube", NULL, NULL);
@@ -168,103 +161,103 @@ int main() {
     //
 
     const GLfloat vertex_positions[] = {
-        -0.25f, -0.25f, -0.25f, 0.0f, 0.0f, -1.0f, // 1
-        -0.25f, 0.25f, -0.25f, 0.0f, 0.0f, -1.0f,  // 0
-        0.25f, -0.25f, -0.25f, 0.0f, 0.0f, -1.0f,  // 2
+        -0.25f, -0.25f, -0.25f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, // 1
+        -0.25f, 0.25f, -0.25f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,  // 0
+        0.25f, -0.25f, -0.25f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,  // 2
 
-        0.25f, 0.25f, -0.25f, 0.0f, 0.0f, -1.0f,  // 3
-        0.25f, -0.25f, -0.25f, 0.0f, 0.0f, -1.0f, // 2
-        -0.25f, 0.25f, -0.25f, 0.0f, 0.0f, -1.0f, // 0
+        0.25f, 0.25f, -0.25f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f,  // 3
+        0.25f, -0.25f, -0.25f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // 2
+        -0.25f, 0.25f, -0.25f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // 0
 
-        0.25f, -0.25f, -0.25f, 1.0f, 0.0f, 0.0f, // 2
-        0.25f, 0.25f, -0.25f, 1.0f, 0.0f, 0.0f,  // 3
-        0.25f, -0.25f, 0.25f, 1.0f, 0.0f, 0.0f,  // 5
+        0.25f, -0.25f, -0.25f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // 2
+        0.25f, 0.25f, -0.25f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,  // 3
+        0.25f, -0.25f, 0.25f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  // 5
 
-        0.25f, 0.25f, 0.25f, 1.0f, 0.0f, 0.0f,  // 4
-        0.25f, -0.25f, 0.25f, 1.0f, 0.0f, 0.0f, // 5
-        0.25f, 0.25f, -0.25f, 1.0f, 0.0f, 0.0f, // 3
+        0.25f, 0.25f, 0.25f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // 4
+        0.25f, -0.25f, 0.25f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // 5
+        0.25f, 0.25f, -0.25f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // 3
 
-        0.25f, -0.25f, 0.25f, 0.0f, 0.0f, 1.0f,  // 5
-        0.25f, 0.25f, 0.25f, 0.0f, 0.0f, 1.0f,   // 4
-        -0.25f, -0.25f, 0.25f, 0.0f, 0.0f, 1.0f, // 6
+        0.25f, -0.25f, 0.25f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,  // 5
+        0.25f, 0.25f, 0.25f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,   // 4
+        -0.25f, -0.25f, 0.25f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // 6
 
-        -0.25f, 0.25f, 0.25f, 0.0f, 0.0f, 1.0f,  // 7
-        -0.25f, -0.25f, 0.25f, 0.0f, 0.0f, 1.0f, // 6
-        0.25f, 0.25f, 0.25f, 0.0f, 0.0f, 1.0f,   // 4
+        -0.25f, 0.25f, 0.25f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,  // 7
+        -0.25f, -0.25f, 0.25f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // 6
+        0.25f, 0.25f, 0.25f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,   // 4
 
-        -0.25f, -0.25f, 0.25f, -1.0f, 0.0f, 0.0f,  // 6
-        -0.25f, 0.25f, 0.25f, -1.0f, 0.0f, 0.0f,   // 7
-        -0.25f, -0.25f, -0.25f, -1.0f, 0.0f, 0.0f, // 1
+        -0.25f, -0.25f, 0.25f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // 6
+        -0.25f, 0.25f, 0.25f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,   // 7
+        -0.25f, -0.25f, -0.25f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // 1
 
-        -0.25f, 0.25f, -0.25f, -1.0f, 0.0f, 0.0f,  // 0
-        -0.25f, -0.25f, -0.25f, -1.0f, 0.0f, 0.0f, // 1
-        -0.25f, 0.25f, 0.25f, -1.0f, 0.0f, 0.0f,   // 7
+        -0.25f, 0.25f, -0.25f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // 0
+        -0.25f, -0.25f, -0.25f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // 1
+        -0.25f, 0.25f, 0.25f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,   // 7
 
-        0.25f, -0.25f, -0.25f, 0.0f, -1.0f, 0.0f,  // 2
-        0.25f, -0.25f, 0.25f, 0.0f, -1.0f, 0.0f,   // 5
-        -0.25f, -0.25f, -0.25f, 0.0f, -1.0f, 0.0f, // 1
+        0.25f, -0.25f, -0.25f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,  // 2
+        0.25f, -0.25f, 0.25f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,   // 5
+        -0.25f, -0.25f, -0.25f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // 1
 
-        -0.25f, -0.25f, 0.25f, 0.0f, -1.0f, 0.0f,  // 6
-        -0.25f, -0.25f, -0.25f, 0.0f, -1.0f, 0.0f, // 1
-        0.25f, -0.25f, 0.25f, 0.0f, -1.0f, 0.0f,   // 5
+        -0.25f, -0.25f, 0.25f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,  // 6
+        -0.25f, -0.25f, -0.25f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // 1
+        0.25f, -0.25f, 0.25f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,   // 5
 
-        0.25f, 0.25f, 0.25f, 0.0f, 1.0f, 0.0f,  // 4
-        0.25f, 0.25f, -0.25f, 0.0f, 1.0f, 0.0f, // 3
-        -0.25f, 0.25f, 0.25f, 0.0f, 1.0f, 0.0f, // 7
+        0.25f, 0.25f, 0.25f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,  // 4
+        0.25f, 0.25f, -0.25f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, // 3
+        -0.25f, 0.25f, 0.25f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, // 7
 
-        -0.25f, 0.25f, -0.25f, 0.0f, 1.0f, 0.0f, // 0
-        -0.25f, 0.25f, 0.25f, 0.0f, 1.0f, 0.0f,  // 7
-        0.25f, 0.25f, -0.25f, 0.0f, 1.0f, 0.0f,  // 3
+        -0.25f, 0.25f, -0.25f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // 0
+        -0.25f, 0.25f, 0.25f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,  // 7
+        0.25f, 0.25f, -0.25f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,  // 3
 
         // SECOND CUBE
 
-        1.5f, 1.5f, 1.5f, 0.0f, 0.0f, -1.0f, // 1
-        1.5f, 2.5f, 1.5f, 0.0f, 0.0f, -1.0f, // 0
-        2.5f, 1.5f, 1.5f, 0.0f, 0.0f, -1.0f, // 2
+        1.5f, 1.5f, 1.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, // 1
+        1.5f, 2.5f, 1.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // 0
+        2.5f, 1.5f, 1.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // 2
 
-        2.5f, 2.5f, 1.5f, 0.0f, 0.0f, -1.0f, // 3
-        2.5f, 1.5f, 1.5f, 0.0f, 0.0f, -1.0f, // 2
-        1.5f, 2.5f, 1.5f, 0.0f, 0.0f, -1.0f, // 0
+        2.5f, 2.5f, 1.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, // 3
+        2.5f, 1.5f, 1.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // 2
+        1.5f, 2.5f, 1.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // 0
 
-        2.5f, 1.5f, 1.5f, 1.0f, 0.0f, 0.0f, // 2
-        2.5f, 2.5f, 1.5f, 1.0f, 0.0f, 0.0f, // 3
-        2.5f, 1.5f, 2.5f, 1.0f, 0.0f, 0.0f, // 5
+        2.5f, 1.5f, 1.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // 2
+        2.5f, 2.5f, 1.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // 3
+        2.5f, 1.5f, 2.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // 5
 
-        2.5f, 2.5f, 2.5f, 1.0f, 0.0f, 0.0f, // 4
-        2.5f, 1.5f, 2.5f, 1.0f, 0.0f, 0.0f, // 5
-        2.5f, 2.5f, 1.5f, 1.0f, 0.0f, 0.0f, // 3
+        2.5f, 2.5f, 2.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // 4
+        2.5f, 1.5f, 2.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // 5
+        2.5f, 2.5f, 1.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // 3
 
-        2.5f, 1.5f, 2.5f, 0.0f, 0.0f, 1.0f, // 5
-        2.5f, 2.5f, 2.5f, 0.0f, 0.0f, 1.0f, // 4
-        1.5f, 1.5f, 2.5f, 0.0f, 0.0f, 1.0f, // 6
+        2.5f, 1.5f, 2.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, // 5
+        2.5f, 2.5f, 2.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // 4
+        1.5f, 1.5f, 2.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // 6
 
-        1.5f, 2.5f, 2.5f, 0.0f, 0.0f, 1.0f, // 7
-        1.5f, 1.5f, 2.5f, 0.0f, 0.0f, 1.0f, // 6
-        2.5f, 2.5f, 2.5f, 0.0f, 0.0f, 1.0f, // 4
+        1.5f, 2.5f, 2.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, // 7
+        1.5f, 1.5f, 2.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // 6
+        2.5f, 2.5f, 2.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // 4
 
-        1.5f, 1.5f, 2.5f, -1.0f, 0.0f, 0.0f, // 6
-        1.5f, 2.5f, 2.5f, -1.0f, 0.0f, 0.0f, // 7
-        1.5f, 1.5f, 1.5f, -1.0f, 0.0f, 0.0f, // 1
+        1.5f, 1.5f, 2.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // 6
+        1.5f, 2.5f, 2.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // 7
+        1.5f, 1.5f, 1.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // 1
 
-        1.5f, 2.5f, 1.5f, -1.0f, 0.0f, 0.0f, // 0
-        1.5f, 1.5f, 1.5f, -1.0f, 0.0f, 0.0f, // 1
-        1.5f, 2.5f, 2.5f, -1.0f, 0.0f, 0.0f, // 7
+        1.5f, 2.5f, 1.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // 0
+        1.5f, 1.5f, 1.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // 1
+        1.5f, 2.5f, 2.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // 7
 
-        2.5f, 1.5f, 1.5f, 0.0f, -1.0f, 0.0f, // 2
-        2.5f, 1.5f, 2.5f, 0.0f, -1.0f, 0.0f, // 5
-        1.5f, 1.5f, 1.5f, 0.0f, -1.0f, 0.0f, // 1
+        2.5f, 1.5f, 1.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, // 2
+        2.5f, 1.5f, 2.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // 5
+        1.5f, 1.5f, 1.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // 1
 
-        1.5f, 1.5f, 2.5f, 0.0f, -1.0f, 0.0f, // 6
-        1.5f, 1.5f, 1.5f, 0.0f, -1.0f, 0.0f, // 1
-        2.5f, 1.5f, 2.5f, 0.0f, -1.0f, 0.0f, // 5
+        1.5f, 1.5f, 2.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f, // 6
+        1.5f, 1.5f, 1.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // 1
+        2.5f, 1.5f, 2.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // 5
 
-        2.5f, 2.5f, 2.5f, 0.0f, 1.0f, 0.0f, // 4
-        2.5f, 2.5f, 1.5f, 0.0f, 1.0f, 0.0f, // 3
-        1.5f, 2.5f, 2.5f, 0.0f, 1.0f, 0.0f, // 7
+        2.5f, 2.5f, 2.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // 4
+        2.5f, 2.5f, 1.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, // 3
+        1.5f, 2.5f, 2.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, // 7
 
-        1.5f, 2.5f, 1.5f, 0.0f, 1.0f, 0.0f, // 0
-        1.5f, 2.5f, 2.5f, 0.0f, 1.0f, 0.0f, // 7
-        2.5f, 2.5f, 1.5f, 0.0f, 1.0f, 0.0f, // 3
+        1.5f, 2.5f, 1.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // 0
+        1.5f, 2.5f, 2.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, // 7
+        2.5f, 2.5f, 1.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f  // 3
     };
 
     // Vertex Buffer Object (for vertex coordinates)
@@ -277,11 +270,18 @@ int main() {
     // Vertex attributes
     // 0: vertex position (x, y, z)
     glVertexAttribPointer(
-        0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+        0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+
+    // 1: vertex normals (x, y, z)
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
         (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    // 2: image maps coords (x, y)
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+        (void *)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // Unbind vbo (it was conveniently registered by VertexAttribPointer)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -324,14 +324,40 @@ int main() {
         = glGetUniformLocation(shader_program, "light.specular");
 
     // - Material data
-    material_amb_location
-        = glGetUniformLocation(shader_program, "material.ambient");
-    material_diff_location
-        = glGetUniformLocation(shader_program, "material.diffuse");
-    material_spec_location
-        = glGetUniformLocation(shader_program, "material.specular");
     material_shin_location
         = glGetUniformLocation(shader_program, "material.shininess");
+
+    // - Texture maps
+    glGenTextures(2, texture_maps);
+
+    // Diffuse map in GL_TEXTURE0 var
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture_maps[0]);
+    int imageWidth, imageHeight, ImageNrChannels;
+    stbi_set_flip_vertically_on_load(1);
+    unsigned char *image
+        = stbi_load("diffuse_map.jpg", &imageWidth, &imageHeight, &ImageNrChannels, 0);
+    if (image) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB,
+            GL_UNSIGNED_BYTE, image);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+        printf("cant load diffuse map\n");
+    }
+    stbi_image_free(image);
+
+    // Diffuse map in GL_TEXTURE1 var
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture_maps[1]);
+    image = stbi_load("specular_map.jpg", &imageWidth, &imageHeight, &ImageNrChannels, 0);
+    if (image) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB,
+            GL_UNSIGNED_BYTE, image);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+        printf("cant load specular map\n");
+    }
+    stbi_image_free(image);
 
     // Render loop
     while (!glfwWindowShouldClose(window)) {
@@ -404,9 +430,6 @@ void render(double currentTime) {
 
     // material
     glUniform1f(material_shin_location, material_shininess);
-    glUniform3fv(material_spec_location, 1, glm::value_ptr(material_specular));
-    glUniform3fv(material_diff_location, 1, glm::value_ptr(material_diffuse));
-    glUniform3fv(material_amb_location, 1, glm::value_ptr(material_ambient));
 
     // camera pos
     glUniform3fv(cam_pos_location, 1, glm::value_ptr(camera_pos));
