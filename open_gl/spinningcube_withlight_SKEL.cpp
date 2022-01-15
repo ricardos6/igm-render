@@ -21,6 +21,9 @@
 int gl_width  = 640;
 int gl_height = 480;
 
+// Fix error in Ricardo's laptop
+void *__gxx_personality_v0;
+
 void glfw_window_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 void render(double);
