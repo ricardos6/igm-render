@@ -149,9 +149,12 @@ def add_plane(position, normal):
 
 
 def add_triangle(position, color):
+    # Se calcula la normal utilizando el producto vectorial para triangulos utilizado en OpenGL https://www.khronos.org/opengl/wiki/Calculating_a_Surface_Normal
     return dict(type='triangle',
                 color=np.array(color),
                 pos=np.array(position),
+                normal=np.cross(np.subtract(position[1], position[0]),
+                                np.subtract(position[2], position[0])),
                 reflection=.3)
 
 
