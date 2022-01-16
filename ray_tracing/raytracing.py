@@ -37,11 +37,14 @@ def intersect_plane(O, D, P, N):
     denom = np.dot(D, N)
     if np.abs(denom) < 1e-6:
         return np.inf
-    d = np.dot(P - O, N) / denom
+    d = np.dot(P - O, N) / denom   
+
+    inside = np.dot(np.cross(D, O - P), N) >= 0
+
     if d < 0:
         return np.inf
-    return d
 
+    return d if inside else np.inf
 
 def intersect_sphere(O, D, S, R):
     # Return the distance from O to the intersection of the ray (O, D) with the
@@ -62,12 +65,29 @@ def intersect_sphere(O, D, S, R):
             return t1 if t0 < 0 else t0
     return np.inf
 
+def intersect_triangle(O, D, T, N):
+    # Return the distance from O to the intersection of the ray (O, D) with the
+    # traingle (T, N), or +inf if there is no intersection.
+    # O and T are 3D points, D and N (normal) are normalized vectors.
+    denom = np.dot(D, N)
+    if np.abs(denom) < 1e-6:
+        return np.inf
+
+    d = np.dot(O + N + np.dot(T[1], N), N) / denom
+
+    if d < 0:
+        return np.inf
+    return d
+
+    # return np.inf
 
 def intersect(O, D, obj):
     if obj['type'] == 'plane':
         return intersect_plane(O, D, obj['position'], obj['normal'])
     elif obj['type'] == 'sphere':
         return intersect_sphere(O, D, obj['position'], obj['radius'])
+    elif obj['type'] == 'triangle':
+        return intersect_triangle(O, D, obj['position'], obj['normal'])
 
 
 def get_normal(obj, M):
@@ -75,6 +95,8 @@ def get_normal(obj, M):
     if obj['type'] == 'sphere':
         N = normalize(M - obj['position'])
     elif obj['type'] == 'plane':
+        N = obj['normal']
+    elif obj['type'] == 'triangle':
         N = obj['normal']
     return N
 
@@ -152,7 +174,7 @@ def add_triangle(position, color):
     # Se calcula la normal utilizando el producto vectorial para triangulos utilizado en OpenGL https://www.khronos.org/opengl/wiki/Calculating_a_Surface_Normal
     return dict(type='triangle',
                 color=np.array(color),
-                pos=np.array(position),
+                position=np.array(position),
                 normal=np.cross(np.subtract(position[1], position[0]),
                                 np.subtract(position[2], position[0])),
                 reflection=.3)
@@ -165,7 +187,8 @@ scene = [
     add_sphere([.75, .1, 1.], .6, [0., 0., 1.]),
     add_sphere([-.75, .1, 2.25], .6, [.5, .223, .5]),
     add_sphere([-2.75, .1, 3.5], .6, [1., .572, .184]),
-    add_plane([0., -.5, 0.], [0., 1., 0.]),
+    add_triangle([[.75, .1, 3.], [1.75, .1, 3.], [1.0, .8, 3.]], [1., .572, .184]),
+    add_plane([0., -.5, 0.], [0., 1., 0.])
 ]
 
 # Light position and color arrays.
