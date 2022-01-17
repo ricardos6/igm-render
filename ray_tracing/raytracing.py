@@ -37,14 +37,11 @@ def intersect_plane(O, D, P, N):
     denom = np.dot(D, N)
     if np.abs(denom) < 1e-6:
         return np.inf
-    d = np.dot(P - O, N) / denom   
-
-    inside = np.dot(np.cross(D, O - P), N) >= 0
-
+    d = np.dot(P - O, N) / denom
     if d < 0:
         return np.inf
+    return d
 
-    return d if inside else np.inf
 
 def intersect_sphere(O, D, S, R):
     # Return the distance from O to the intersection of the ray (O, D) with the
@@ -65,21 +62,41 @@ def intersect_sphere(O, D, S, R):
             return t1 if t0 < 0 else t0
     return np.inf
 
+
 def intersect_triangle(O, D, T, N):
     # Return the distance from O to the intersection of the ray (O, D) with the
     # traingle (T, N), or +inf if there is no intersection.
     # O and T are 3D points, D and N (normal) are normalized vectors.
-    denom = np.dot(D, N)
-    if np.abs(denom) < 1e-6:
+    # implements the moller trumbore intersection algorithm slightly modified https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates
+    plane_intersection = intersect_plane(O[0], D, np.array(T[0]), N)
+    if (plane_intersection == np.inf):
+        return np.inf  # if it doesnt intersect plane, it doesnt intersect triangle in the plane
+
+    # we calculate the intersection point with the plane
+    plane_intersection_point = O + D * plane_intersection
+    # triangle vertices and vectors
+    vert0 = np.array(T[0])
+    vert1 = np.array(T[1])
+    vert2 = np.array(T[2])
+    vector20 = vert2 - vert0
+    vector10 = vert1 - vert0
+    vectorplane2 = plane_intersection_point - vert0
+    # calculates the scalar products for the triangle so we can compute the barycentric coordinates
+    scalar1 = np.dot(vector20, vector20)
+    scalar2 = np.dot(vector20, vector10)
+    scalar3 = np.dot(vector20, vectorplane2)
+    scalar4 = np.dot(vector10, vector10)
+    scalar5 = np.dot(vector10, vectorplane2)
+    #  we calculate the barycentric coordinates for the triangle
+    d = scalar1 * scalar4 - scalar2 * scalar2
+    u = (scalar4 * scalar3 - scalar2 * scalar5) / d
+    v = (scalar1 * scalar5 - scalar2 * scalar3) / d
+    # if the point is outside the triangle we return np.inf, otherwise the intersection with the previously calculated plane
+    if (u >= 0) and (v >= 0) and (u + v < 1):
+        return plane_intersection
+    else:
         return np.inf
 
-    d = np.dot(O + N + np.dot(T[1], N), N) / denom
-
-    if d < 0:
-        return np.inf
-    return d
-
-    # return np.inf
 
 def intersect(O, D, obj):
     if obj['type'] == 'plane':
@@ -187,8 +204,9 @@ scene = [
     add_sphere([.75, .1, 1.], .6, [0., 0., 1.]),
     add_sphere([-.75, .1, 2.25], .6, [.5, .223, .5]),
     add_sphere([-2.75, .1, 3.5], .6, [1., .572, .184]),
-    add_triangle([[.75, .1, 3.], [1.75, .1, 3.], [1.0, .8, 3.]], [1., .572, .184]),
-    add_plane([0., -.5, 0.], [0., 1., 0.])
+    add_plane([0., -.5, 0.], [0., 1., 0.]),
+    add_triangle([[-0.4, 0.4, 3.], [0., -0.5, 3.], [0.5, 0.5, 3.]],
+                 [1., 0., 0.]),
 ]
 
 # Light position and color arrays.
