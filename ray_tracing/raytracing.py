@@ -18,6 +18,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+from turtle import distance
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -97,6 +98,18 @@ def intersect_triangle(O, D, T, N):
     else:
         return np.inf
 
+def intersect_triangles_strip(O, D, T):
+
+    min_distance = np.inf
+    distances_list = []
+
+    for triangle in range(len(T)):
+        distances_list.append(intersect_triangle(O, D, T[triangle]['position'], T[triangle]['normal']))
+    
+    min_distance = min(distances_list)
+
+    return min_distance
+
 
 def intersect(O, D, obj):
     if obj['type'] == 'plane':
@@ -105,6 +118,8 @@ def intersect(O, D, obj):
         return intersect_sphere(O, D, obj['position'], obj['radius'])
     elif obj['type'] == 'triangle':
         return intersect_triangle(O, D, obj['position'], obj['normal'])
+    elif obj['type'] == 'triangles_strip':
+        return intersect_triangles_strip(O, D, obj['elements'])
 
 
 def get_normal(obj, M):
@@ -114,6 +129,8 @@ def get_normal(obj, M):
     elif obj['type'] == 'plane':
         N = obj['normal']
     elif obj['type'] == 'triangle':
+        N = obj['normal']
+    elif obj['type'] == 'triangles_strip':
         N = obj['normal']
     return N
 
@@ -137,6 +154,21 @@ def trace_ray(rayO, rayD):
         return
     # Find the object.
     obj = scene[obj_idx]
+    
+    if obj['type'] == 'triangles_strip':
+        t_2 = np.inf
+        # Si es un grupo de triangulos y iteramos sobre ellos
+        # para obtener el traingulo que impacta con el rayo
+        for j, obj_2 in enumerate(obj['elements']):
+            t_obj_2 = intersect(rayO, rayD, obj_2)
+            if t_obj_2 < t_2:
+                t_2, obj_idx_2 = t_obj_2, j
+        # Return None if the ray does not intersect any object.
+        if t_2 == np.inf:
+            return
+        # Find the object.
+        obj = obj['elements'][obj_idx_2]
+
     # Find the point of intersection on the object.
     M = rayO + rayD * t
     # Find properties of the object.
@@ -196,6 +228,31 @@ def add_triangle(position, color):
                                 np.subtract(position[2], position[0])),
                 reflection=.3)
 
+def add_triangles_strip(position, color):
+    
+    if len(position) >= 3:
+        triangles = []
+        normal = []
+        
+        triangles.append(add_triangle(
+            np.array([position[0], position[1], position[2]]), color))
+
+        normal.append(np.cross(np.subtract(position[1], position[0]),
+                                np.subtract(position[2], position[0])))
+
+        for i in range(3, len(position), 1):
+            triangles.append(add_triangle(
+                [position[i - 1], position[i - 2], position[i]], color))
+            normal.append(np.cross(np.subtract(position[i - 1], position[i]),
+                                np.subtract(position[i - 2], position[i])))
+
+        return dict(type='triangles_strip',
+                    color=np.array(color),
+                    elements=np.array(triangles),
+                    normal=normal,
+                    reflection=.1)
+    else:
+        return
 
 # List of objects.
 color_plane0 = 1. * np.ones(3)
@@ -206,6 +263,8 @@ scene = [
     add_sphere([-2.75, .1, 3.5], .6, [1., .572, .184]),
     add_plane([0., -.5, 0.], [0., 1., 0.]),
     add_triangle([[-0.4, 0.4, 3.], [0., -0.5, 3.], [0.5, 0.5, 3.]],
+                 [1., 0.5, 0.]),
+    add_triangles_strip([[-0.6, 1.8, 3.], [0., 1.5, 3.], [0.5, 1.9, 3.], [1.6,  1.3,  3. ]],
                  [1., 0., 0.]),
 ]
 
